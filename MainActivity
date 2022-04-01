@@ -1,0 +1,284 @@
+package com.example.a777;
+
+
+import android.app.Activity;
+import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+public class MainActivity extends Activity implements OnClickListener {
+//--------------------------------------------------------------------Объявление переменных и др.---
+    DBHelper dbHelper;                                                                         //---
+    SQLiteDatabase dbb;                                                                        //---
+    Button btn_sozdat, btn_marka, btn_model, btn_category, btn_gos_nomer, btn_god_vipuska,     //---
+    btn_tek, btn_dobavka;                                                                      //---
+    Class_resurses avto=new Class_resurses() ;                                                 //---
+    EditText etMarka, etModel, etCatedory, etGos_Nomer, etGod;                                 //---
+                                                                                               //---
+    final String ATTRIBUTE_NAME_MARKA = "Марка";//Поля для контейнера m                        //---
+    final String ATTRIBUTE_NAME_MODEL = "Модель";                                              //---
+    final String ATTRIBUTE_NAME_CATEGORY ="Category_TC";                                       //---
+    final String ATTRIBUTE_NAME_GOS_NOMER = "Gos_Nomer";                                       //---
+    final String ATTRIBUTE_NAME_TYPE_TC = "Type_TC";                                           //---
+    final String ATTRIBUTE_NAME_GOD_VIPUSKA ="God_vipuska";                                    //---
+    final String ATTRIBUTE_NAME_PRICEP = "Pricep";                                             //---
+    ListView lvSimple;                                                                         //---
+    Cursor c;                                                                                  //---
+//--------------------------------------------------------------------------------------------------
+
+
+
+//-----------------------------------------------------------------------------------Основной код---
+    /** Called when the activity is first created. */                                          //---
+    @Override                                                                                  //---
+    public void onCreate(Bundle savedInstanceState) {                                          //---
+        super.onCreate(savedInstanceState);                                                    //---
+        setContentView(R.layout.activity_main);//Подключение стартовой страницы                //---
+                                                                                               //---
+        btn_sozdat=(findViewById(R.id.button_Sozdat));//Кнопка создания сток базы              //---
+        btn_sozdat.setOnClickListener(this);//ставим слушатель                                 //---
+        btn_model=(findViewById(R.id.button_Model));//Кнопка поиска модели                     //---
+        btn_model.setOnClickListener(this);                                                    //---
+        btn_category=(findViewById(R.id.button_CategoryTC));//Кнопка поиска категории          //---
+        btn_category.setOnClickListener(this);                                                 //---
+        btn_gos_nomer=(findViewById(R.id.button_Gos_Nomer));//Кнопка поиска госНомер           //---
+        btn_gos_nomer.setOnClickListener(this);                                                //---
+        btn_god_vipuska=(findViewById(R.id.button_God_TC));//Кнопка поиска год выпуска         //---
+        btn_god_vipuska.setOnClickListener(this);                                              //---
+        btn_marka=(findViewById(R.id.button_marka));//Кнопка поиска марки                      //---
+        btn_marka.setOnClickListener(this);                                                    //---
+        btn_tek=(findViewById(R.id.button_tek));
+        btn_tek.setOnClickListener(this);
+        //---------------------------------------Кнопка второго окна
+        (findViewById(R.id.button_dobavlenie)).setOnClickListener(this);
+                                                                                               //---
+        etMarka=(EditText) findViewById(R.id.edittext_marka);//Поле ввода марки...             //---
+        etModel=(EditText) findViewById(R.id.edittext_model);                                  //---
+        etCatedory=(EditText) findViewById(R.id.edittext_category);                            //---
+        etGos_Nomer=(EditText) findViewById(R.id.edittext_gos_nomer);                          //---
+        etGod=(EditText) findViewById(R.id.edittext_god);                                      //---
+
+                                                                                               //---
+        // создаем объект для создания и управления версиями БД                                //---
+        dbHelper = new DBHelper(this);                                                         //---
+        // подключаемся к БД                                                                   //---
+        dbb= dbHelper.getWritableDatabase();                                                   //---
+        //Читаем всю таблицу                                                                   //---
+        c=dbb.query("mytable", null, null, null,                                               //---
+                null, null,null);                                                              //---
+        //Передаем в метод для отображения объект Cursor                                       //---
+        read_myDB(c);                                                                          //---
+    }                                                                                          //---
+//--------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------------------Метод-слушатель кнопок---
+    @Override
+    public void onClick(View v) {
+        String s_model = etModel.getText().toString();
+        String s_marka = etMarka.getText().toString();
+        String s_category = etCatedory.getText().toString();
+        String s_god = etGod.getText().toString();
+        String s_gos_nomer = etGos_Nomer.getText().toString();
+
+        // переменные для query
+        String[] columns = null;
+        String selection = null;
+        String[] selectionArgs = null;
+        String groupBy = null;
+        String having = null;
+        String orderBy = null;
+
+        //-------------------------------------Кнопка создает записи в базе(стоковая база)
+        if(v.getId()==R.id.button_Sozdat){
+            c=null;
+            //Очищаю перед созданием базу
+            dbb.delete("mytable", null, null);
+            //Ввожу пробные строки
+            ContentValues cv;
+            for(int i=0; i<avto.Marka.length; i++) {
+                cv = new ContentValues();
+                cv.put("marka", avto.Marka[i]);
+                cv.put("model", avto.Model[i]);
+                cv.put("Category_TC", avto.Category_TC[i]);
+                cv.put("Gos_Nomer", avto.Gos_Nomer[i]);
+                cv.put("Type_TC", avto.Type_TC[i]);
+                cv.put("God_vipuska", avto.God_Vipuska[i]);
+                cv.put("Pricep", avto.Pricep[i]);
+
+                dbb.insert("mytable", null, cv);
+                }
+            c=dbb.query("mytable", null, null, null, null, null,
+                    null);
+            // c.close();
+            read_myDB(c);
+        }
+
+        //-------------------------------------Кнопка поиска марки
+        if(v.getId()==R.id.button_marka){
+            c=null;
+            selection="marka = ?";
+            selectionArgs=new String[]{s_marka};
+            c=dbb.query("mytable", null, selection, selectionArgs, null, null,
+                    null );
+            read_myDB(c);
+        }
+        //-------------------------------------Кнопка поиска модели
+        if(v.getId()==R.id.button_Model){
+            c=null;
+            selection="model = ?";
+            selectionArgs=new String[]{s_model};
+            c=dbb.query("mytable", null, selection, selectionArgs, null,
+                    null,null );
+            read_myDB(c);   }
+
+        //-------------------------------------Кнопка поиска категории
+        if(v.getId()==R.id.button_CategoryTC){
+            c=null;
+            selection="Category_TC = ?";
+            selectionArgs=new String[]{s_category};
+            c=dbb.query("mytable", null, selection, selectionArgs, null, null,
+                    null );
+            read_myDB(c);   }
+
+        //-------------------------------------Кнопка поиска гос номер
+        if(v.getId()==R.id.button_Gos_Nomer){
+            c=null;
+            selection="Gos_Nomer = ?";
+            selectionArgs=new String[]{s_gos_nomer};
+            c=dbb.query("mytable", null, selection, selectionArgs, null, null,
+                    null );
+            read_myDB(c);   }
+
+        //-------------------------------------Кнопка поиска год выпуска
+
+        if(v.getId()==R.id.button_God_TC){
+            c=null;
+            selection="God_vipuska > ?";
+            selectionArgs=new String[]{s_god};
+            c=dbb.query("mytable", null, selection, selectionArgs, null, null,
+                    null );
+            read_myDB(c);  }
+
+        //------------------------------------Кнопка отобразит текущую базу
+        if(v.getId()==R.id.button_tek){
+            c=null;
+            c=dbb.query("mytable", null, null, null,
+                    null, null,null );
+            read_myDB(c);  }
+
+        //------------------------------------Кнопка добавления записи в базу
+        if(v.getId()==R.id.button_dobavlenie){
+            Intent intent=new Intent(this, ActivityTwo.class);
+            startActivity(intent);
+             }
+    }
+
+    class DBHelper extends SQLiteOpenHelper {
+        public DBHelper(Context context) {
+            // конструктор суперкласса
+            super(context, "myDB", null, 1);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            // создаем таблицу с полями
+            db.execSQL("create table mytable ("
+                    + "id integer primary key autoincrement,"
+                    + "marka text,"
+                    + "model text,"
+                    + "Category_TC text,"
+                    + "Gos_Nomer text,"
+                    + "Type_TC text,"
+                    + "God_vipuska text,"
+                    + "Pricep text"+ ");");
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
+        }
+    }
+
+//-----------------------------------------------------------------------Метод читает базу данных---
+    public void read_myDB(Cursor cursor){                                                      //---
+        Cursor cc=cursor;                                                                      //---
+        //Первая строка выборки                                                                //---
+        if (cc.moveToFirst()) {                                                                //---
+                                                                                               //---
+            // определяем номера столбцов по имени в выборке                                   //---
+            int markaColIndex = c.getColumnIndex("marka");                                  //---
+            int modelColIndex = c.getColumnIndex("model");                                  //---
+            int category_TCColIndex = c.getColumnIndex("Category_TC");                      //---
+            int gos_NomerColIndex = c.getColumnIndex("Gos_Nomer");                          //---
+            int type_TCColIndex = c.getColumnIndex("Type_TC");                              //---
+            int god_vipuskaColIndex = c.getColumnIndex("God_vipuska");                      //---
+            int pricepColIndex = c.getColumnIndex("Pricep");                                //---
+                                                                                               //---
+            // упаковываем данные в понятную для адаптера структуру                            //---
+            ArrayList<Map<String, Object>> data = new ArrayList<Map<String, Object>>(cc.getCount());             //---
+            Map<String, Object> m;                                                             //---
+            // массив имен атрибутов, из которых будут читаться данные                         //---
+            String[] from = { ATTRIBUTE_NAME_MARKA,                                            //---
+                    ATTRIBUTE_NAME_MODEL, ATTRIBUTE_NAME_CATEGORY, ATTRIBUTE_NAME_GOS_NOMER,   //---
+            ATTRIBUTE_NAME_TYPE_TC, ATTRIBUTE_NAME_GOD_VIPUSKA, ATTRIBUTE_NAME_PRICEP};        //---
+            // массив ID View-компонентов, в которые будут вставлять данные                    //---
+            int[] to = { R.id.textView_0, R.id.textView_1, R.id.textView_2, R.id.textView_3,   //---
+            R.id.textView_4, R.id.textView_5, R.id.textView_6};                                //---
+            //заполняем data
+            do {
+                m = new HashMap<String, Object>();
+
+                m.put(ATTRIBUTE_NAME_MARKA, cc.getString(markaColIndex));
+                m.put(ATTRIBUTE_NAME_MODEL, cc.getString(modelColIndex));
+                m.put(ATTRIBUTE_NAME_CATEGORY, cc.getString(category_TCColIndex));
+                m.put(ATTRIBUTE_NAME_GOS_NOMER, cc.getString(gos_NomerColIndex));
+                m.put(ATTRIBUTE_NAME_TYPE_TC, cc.getString(type_TCColIndex));
+                m.put(ATTRIBUTE_NAME_GOD_VIPUSKA, cc.getString(god_vipuskaColIndex));
+                m.put(ATTRIBUTE_NAME_PRICEP, cc.getString(pricepColIndex));
+
+                data.add(m);
+
+                // переход на следующую строку
+                // а если следующей нет (текущая - последняя), то false - выходим из цикла
+             //Следующая строка
+            } while (cc.moveToNext());
+
+            // создаем адаптер
+            SimpleAdapter sAdapter = new SimpleAdapter(this, data, R.layout.item_for_my_list,
+                    from, to);
+            // определяем список и присваиваем ему адаптер
+            lvSimple = (ListView) findViewById(R.id.lvMain);
+            lvSimple.setAdapter(sAdapter);
+        }
+        cc.close();
+    }
+//---------------------------------------------------------Запись новой строки
+    public void metodr (ContentValues contentValues){
+        btn_tek.setText("jkjk");
+        ContentValues cv=contentValues;
+        dbb.insert("mytable", null, cv);
+
+        c=dbb.query("mytable", null, null, null, null, null,
+                null);
+        // c.close();
+        read_myDB(c);
+    }
+
+
+}
