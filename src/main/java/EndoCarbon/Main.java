@@ -8,6 +8,7 @@ public class Main {
         Messeg messeg2=new groupMesseg("hello world", "Adress", new Date());
 
         messeg1.print();
+        int i = 0;
 
         messeg2.print();
 
